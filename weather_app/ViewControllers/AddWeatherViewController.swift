@@ -7,23 +7,38 @@
 
 import UIKit
 
+protocol AddWeatherDelegate {
+    func sendWeatherData(data: WeatherData)
+}
+
 class AddWeatherViewController: UIViewController {
 
+    @IBOutlet var loadingIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var cityNameTF: UITextField!
+    private let networkManager = NetworkingManager()
+    lazy var delegate: AddWeatherDelegate? = nil
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @IBAction func continueButtonPressed(_ sender: UIButton) {
+        guard let cityName = cityNameTF.text, !cityName.isEmpty else {return }
+        loadingIndicator.startAnimating()
+        
+        let weatherSource = Resource<WeatherData>(url: EndPoints().weatherByCity(city: cityName)) { data in
+            let decodeData = try? JSONDecoder().decode(WeatherData.self, from: data)
+            return decodeData
+        }
+        
+        WebService().load(resource: weatherSource) { result in
+            print("Temperature: \(result?.currentTemperature?.temperature.value.formatTemp ?? "")")
+            if let data = result {
+                self.delegate?.sendWeatherData(data: data)
+                self.loadingIndicator.stopAnimating()
+                self.dismiss(animated: true)
+            }
+        }
     }
-    */
-
+    
 }

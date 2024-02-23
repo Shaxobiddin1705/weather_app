@@ -7,23 +7,19 @@
 
 import UIKit
 
-class WeatherTableCell: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+class WeatherTableCell: UITableViewCell {
+    
+    @IBOutlet weak var leadingLabel: UILabel!
+    
+    @IBOutlet weak var trailingLabel: UILabel!
+    
+    override class func awakeFromNib() {
+        super.awakeFromNib()
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func setData(data: WeatherData) {
+        leadingLabel.text = data.cityName.value
+        trailingLabel.text = data.currentTemperature?.temperature.value.formatTemp
     }
-    */
 
 }

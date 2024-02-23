@@ -7,23 +7,33 @@
 
 import UIKit
 
-class TableViewDataSource: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+class TableViewDataSource<CellType, Data>: NSObject, UITableViewDataSource where CellType: UITableViewCell {
+    
+    let cellIdentifier: String
+    var items: [Data]
+    let configureCell: (CellType, Data) -> ()
+    
+    init(cellIdentifier: String, items: [Data], configureCell: @escaping (CellType, Data) -> ()) {
+        self.cellIdentifier = cellIdentifier
+        self.items = items
+        self.configureCell = configureCell
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    func updateIetms(_ items: [Data]) {
+        self.items = items
     }
-    */
-
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        items.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? CellType else {
+            fatalError("Cell not found")
+        }
+        
+        let data = items[indexPath.row]
+        configureCell(cell, data)
+        return cell
+    }
 }
