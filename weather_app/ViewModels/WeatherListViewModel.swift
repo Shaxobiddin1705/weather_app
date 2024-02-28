@@ -8,7 +8,7 @@
 import Foundation
 
 class WeatherListViewModel {
-    private (set) var weatherData: [WeatherData] = []
+    private (set) var weatherData: [WeatherDataEntity] = []
     
     func updateUnit(to unit: Unit) {
         switch unit {
@@ -19,7 +19,7 @@ class WeatherListViewModel {
         }
     }
     
-    func addWeather(data: WeatherData) {
+    func addWeather(data: WeatherDataEntity) {
         weatherData.append(data)
     }
     
@@ -29,11 +29,10 @@ class WeatherListViewModel {
     
     private func toCelsium() {
         weatherData = weatherData.map { data in
-            if data.unit != .celsius {
-                var weather = data;
-                weather.unit = .celsius
-                let temp = data.currentTemperature?.temperature.value ?? 0;
-                weather.currentTemperature?.temperature.value = (temp - 32) * 5/9
+            if !data.isCelsius {
+                let weather = data;
+                weather.isCelsius = true
+                weather.temperature = (weather.temperature - 32) * 5/9
                 return weather
             }
             return data
@@ -42,11 +41,10 @@ class WeatherListViewModel {
     
     private func toFahrenheit() {
         weatherData = weatherData.map { data in
-            if data.unit != .fahrenheit {
-                var weather = data;
-                weather.unit = .fahrenheit
-                let temp = data.currentTemperature?.temperature.value ?? 0;
-                weather.currentTemperature?.temperature.value = (temp * 9/5) + 32
+            if data.isCelsius {
+                let weather = data;
+                weather.isCelsius = false
+                weather.temperature = (weather.temperature * 9/5) + 32
                 return weather
             }
             return data

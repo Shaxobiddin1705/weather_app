@@ -7,18 +7,21 @@
 
 import UIKit
 
-class WeatherListViewController: UIViewController, AddWeatherDelegate, UITableViewDelegate {
+class WeatherListViewController: UIViewController, AddWeatherDelegate {
     
     @IBOutlet var tableView: UITableView!
     private var weatherViewModel = WeatherListViewModel()
-    private var dataSource: TableViewDataSource<WeatherTableCell, WeatherData>!
+    private var dataSource: TableViewDataSource<WeatherTableCell, WeatherDataEntity>!
+    private var weatherData: [WeatherDataEntity] = []
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistenContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
-        dataSource = TableViewDataSource(cellIdentifier: "weatherTableCell", items: weatherViewModel.weatherData, configureCell: { cell, data in
+        dataSource = TableViewDataSource(cellIdentifier: "weatherTableCell", items: weatherData, configureCell: { cell, data in
             cell.setData(data: data)
         })
+        fetchFromDatabase()
         tableView.dataSource = dataSource
         
     }
@@ -40,9 +43,62 @@ class WeatherListViewController: UIViewController, AddWeatherDelegate, UITableVi
     }
     
     func sendWeatherData(data: WeatherData) {
-        weatherViewModel.addWeather(data: data)
-        dataSource.updateIetms(weatherViewModel.weatherData)
-        tableView.reloadData()
+        saveDatabase(data: data)
+        fetchFromDatabase()
+    }
+    
+    func saveDatabase(data: WeatherData) {
+        let weather = WeatherDataEntity(context: self.context)
+        weather.name = data.cityName.value
+        weather.temperature = data.currentTemperature?.temperature.value ?? 0
+        weather.isCelsius = false
+        weatherViewModel.addWeather(data: weather)
+        
+        do {
+            try self.context.save()
+        } catch {
+            print("Error while saving data in Database")
+        }
+    }
+    
+    func fetchFromDatabase() {
+        do {
+            weatherData = try context.fetch(WeatherDataEntity.fetchRequest())
+            dataSource.updateIetms(weatherData)
+            tableView.reloadData()
+        }catch {
+            print("Error while Fetching weathe data from Database")
+        }
+    }
+    
+    func deletFromDatabase(data: WeatherDataEntity) {
+        context.delete(data)
+        do {
+            try self.context.save()
+        } catch {
+            let error = error as NSError
+            print("Error while deleting data from database \(error.localizedDescription)")
+        }
+    }
+}
+
+extension WeatherListViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        return UISwipeActionsConfiguration(actions: [deleteData(at: indexPath)])
+    }
+    
+    func deleteData(at index: IndexPath) -> UIContextualAction {
+        let action = UIContextualAction(style: .destructive, title: "Delete") { action, view, completion in
+            let data = self.weatherData[index.row]
+            self.weatherData.remove(at: index.row)
+            self.dataSource.updateIetms(self.weatherData)
+            self.tableView.reloadData()
+            self.deletFromDatabase(data: data)
+            
+            completion(true)
+            action.backgroundColor = .red
+        }
+        return action
     }
 }
 

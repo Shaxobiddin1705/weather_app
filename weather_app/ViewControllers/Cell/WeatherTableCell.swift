@@ -17,9 +17,9 @@ class WeatherTableCell: UITableViewCell {
         super.awakeFromNib()
     }
     
-    func setData(data: WeatherData) {
-        leadingLabel.text = data.cityName.value
-        trailingLabel.text = data.currentTemperature?.temperature.value.formatTemp
+    func setData(data: WeatherDataEntity) {
+        leadingLabel.text = data.name
+        trailingLabel.text = data.temperature.formatTemp
     }
 
 }

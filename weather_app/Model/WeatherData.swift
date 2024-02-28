@@ -8,6 +8,7 @@
 import Foundation
 
 struct WeatherData: Decodable {
+    let weather: [Weather]
     let currentTemperature: MainWeather?
     let cityName: Dynamic<String>
     var unit: Unit
@@ -16,11 +17,13 @@ struct WeatherData: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         currentTemperature = try container.decode(MainWeather.self, forKey: .currentTemperature)
         cityName = Dynamic(try container.decode(String.self, forKey: .cityName))
+        weather = try container.decode(Array<Weather>.self, forKey: .weather)
         unit = .fahrenheit
     }
     
     private enum CodingKeys: String, CodingKey {
         case cityName = "name"
+        case weather = "weather"
         case currentTemperature = "main"
     }
 }
@@ -29,6 +32,7 @@ struct Weather: Decodable {
     let id: Int?
     let main: String?
     let description: String?
+    let icon: String?
 }
 
 struct MainWeather: Decodable {
